@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI 简历优化与面试模拟 Agent</title>
+    <style>
+      :root {
+        --bg: #f6f1e8;
+        --ink: #20242a;
+        --muted: #68717d;
+        --panel: rgba(255, 252, 245, 0.88);
+        --panel-strong: #fff8ec;
+        --accent: #c45628;
+        --accent-dark: #8f3517;
+        --accent-soft: rgba(196, 86, 40, 0.14);
+        --green: #17745f;
+        --line: rgba(32, 36, 42, 0.13);
+        --shadow: 0 28px 80px rgba(90, 60, 30, 0.18);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(196, 86, 40, 0.22), transparent 28rem),
+          radial-gradient(circle at 86% 16%, rgba(23, 116, 95, 0.15), transparent 24rem),
+          linear-gradient(135deg, var(--bg), #ebe0cf);
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .page {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 28px 0 48px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 14px 18px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 252, 245, 0.7);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+      }
+
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent), #f0a46c);
+        box-shadow: 0 10px 24px rgba(196, 86, 40, 0.28);
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .nav a {
+        text-decoration: none;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+        gap: clamp(24px, 5vw, 64px);
+        align-items: center;
+        padding: clamp(44px, 8vw, 96px) 0 54px;
+      }
+
+      .hero-copy {
+        padding: clamp(26px, 5vw, 54px);
+        border: 1px solid var(--line);
+        border-radius: 34px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(20px);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        margin-bottom: 20px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        color: var(--accent-dark);
+        background: var(--accent-soft);
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.09em;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 760px;
+        font-size: clamp(44px, 7vw, 88px);
+        line-height: 0.96;
+        letter-spacing: -0.065em;
+      }
+
+      .lead {
+        margin: 28px 0 0;
+        color: var(--muted);
+        font-size: clamp(17px, 2vw, 22px);
+        line-height: 1.82;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 34px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50px;
+        padding: 0 20px;
+        border-radius: 16px;
+        text-decoration: none;
+        font-weight: 900;
+        transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+      }
+
+      .button:hover {
+        transform: translateY(-2px);
+      }
+
+      .primary {
+        color: #fff;
+        background: var(--accent);
+        box-shadow: 0 16px 32px rgba(196, 86, 40, 0.3);
+      }
+
+      .secondary {
+        color: var(--ink);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.48);
+      }
+
+      .console {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 30px;
+        background: #1e232b;
+        color: #f9f5eb;
+        box-shadow: var(--shadow);
+      }
+
+      .console::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 80% 0%, rgba(196, 86, 40, 0.24), transparent 18rem);
+        pointer-events: none;
+      }
+
+      .console-head {
+        position: relative;
+        display: flex;
+        gap: 8px;
+        padding: 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: #ef6a4a;
+      }
+
+      .dot:nth-child(2) {
+        background: #efbd4a;
+      }
+
+      .dot:nth-child(3) {
+        background: #63c17b;
+      }
+
+      .console-body {
+        position: relative;
+        display: grid;
+        gap: 16px;
+        padding: clamp(22px, 4vw, 34px);
+      }
+
+      .metric {
+        padding: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .metric strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 24px;
+      }
+
+      .metric span {
+        color: rgba(249, 245, 235, 0.68);
+        line-height: 1.7;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-top: 18px;
+      }
+
+      .card {
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 26px;
+        background: var(--panel);
+        box-shadow: 0 18px 50px rgba(90, 60, 30, 0.1);
+      }
+
+      .card h2,
+      .card h3 {
+        margin: 0 0 12px;
+        letter-spacing: -0.04em;
+      }
+
+      .card p,
+      .card li {
+        color: var(--muted);
+        line-height: 1.78;
+      }
+
+      .card p {
+        margin: 0;
+      }
+
+      .steps {
+        margin: 0;
+        padding-left: 22px;
+      }
+
+      .wide {
+        grid-column: span 2;
+      }
+
+      .status {
+        color: var(--green);
+        font-weight: 900;
+      }
+
+      code {
+        display: inline-block;
+        padding: 3px 7px;
+        border-radius: 8px;
+        color: var(--accent-dark);
+        background: var(--accent-soft);
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 0.92em;
+      }
+
+      footer {
+        margin-top: 28px;
+        color: var(--muted);
+        text-align: center;
+        font-size: 14px;
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .wide {
+          grid-column: auto;
+        }
+
+        .topbar {
+          align-items: flex-start;
+          border-radius: 24px;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <div class="brand" aria-label="项目名称">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>AI Career Agent</span>
+        </div>
+        <nav class="nav" aria-label="页面导航">
+          <a href="#features">功能</a>
+          <a href="#run">运行</a>
+          <a href="#security">安全</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="page-title">
+          <div class="hero-copy">
+            <span class="eyebrow">GIVEME PROJECT ENTRY</span>
+            <h1 id="page-title">AI 简历优化与面试模拟 Agent</h1>
+            <p class="lead">
+              这是放置在 <code>giveme/index.html</code> 的项目入口页，可被静态渲染平台直接打开。完整交互能力由同目录下的 Streamlit 应用 <code>app.py</code> 提供。
+            </p>
+            <div class="actions" aria-label="主要操作">
+              <a class="button primary" href="app.py">查看 Streamlit 应用脚本</a>
+              <a class="button secondary" href="requirements.txt">查看依赖文件</a>
+            </div>
+          </div>
+
+          <aside class="console" aria-label="应用能力摘要">
+            <div class="console-head" aria-hidden="true">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <div class="console-body">
+              <div class="metric">
+                <strong>01 简历解析</strong>
+                <span>支持粘贴文本，或上传 PDF、DOCX、TXT、MD 文件。</span>
+              </div>
+              <div class="metric">
+                <strong>02 岗位匹配</strong>
+                <span>基于简历和 JD 输出匹配度、关键词、风险点和优化建议。</span>
+              </div>
+              <div class="metric">
+                <strong>03 面试训练</strong>
+                <span>生成定制化问题，并对回答进行结构化评分。</span>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section id="features" class="grid" aria-label="功能说明">
+          <article class="card">
+            <h2>可渲染入口</h2>
+            <p>本页面不依赖构建工具，浏览器直接打开即可渲染，满足项目目录必须包含 <code>index.html</code> 的要求。</p>
+          </article>
+          <article class="card">
+            <h2>演示模式</h2>
+            <p>Streamlit 应用内置示例简历和 JD，可在无 API Key 时展示页面主流程。</p>
+          </article>
+          <article class="card">
+            <h2>真实调用</h2>
+            <p>需要在侧边栏输入个人 OpenAI API Key，应用不会使用服务端环境变量作为 fallback。</p>
+          </article>
+        </section>
+
+        <section id="run" class="grid" aria-label="运行说明">
+          <article class="card wide">
+            <h2>本地运行命令</h2>
+            <ol class="steps">
+              <li>进入项目目录：<code>cd giveme</code></li>
+              <li>安装依赖：<code>python -m pip install -r requirements.txt</code></li>
+              <li>启动应用：<code>python -m streamlit run app.py</code></li>
+            </ol>
+          </article>
+          <article class="card" id="security">
+            <h2>安全状态</h2>
+            <p><span class="status">已加固：</span>模型白名单、上传大小限制、DOCX ZIP 元数据校验、用户侧错误脱敏、AI 空响应失败处理。</p>
+          </article>
+        </section>
+      </main>
+
+      <footer>
+        本静态入口页仅用于作品渲染；完整功能请通过 Streamlit 运行。
+      </footer>
+    </div>
+  </body>
+</html>
